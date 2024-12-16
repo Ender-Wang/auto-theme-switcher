@@ -20,7 +20,7 @@ TIMEZONE_OFFSET=$(date +'%z' | sed -r 's/(.{3})/\1:/' | sed -r 's/([+-])(0)?(.*)
 
 # Check if `hdate` is installed
 echo -n "Checking dependencies... "
-[[ $(which hdate 2>/dev/null) ]] || { echo "hdate needs to be installed. Use 'sudo apt-get install hdate'"; exit 1; }
+[[ $(which hdate 2>/dev/null) ]] || { echo "hdate needs to be installed. Use 'sudo apt install hdate'"; exit 1; }
 echo "OK"
 
 # Get sunrise and sunset times for today using hdate
