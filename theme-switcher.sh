@@ -8,11 +8,11 @@ LONGITUDE="11.662260"
 # gsettings get org.gnome.desktop.interface gtk-theme
 # gsettings get org.gnome.desktop.interface icon-theme
 # Your themes for light (day) and dark (night) modes:
-LIGHT_GTK_THEME="Yaru-purple"
-DARK_GTK_THEME="Yaru-purple-dark"
+LIGHT_GTK_THEME="PiXflat"
+LIGHT_ICON_THEME="PiXflat"
 
-LIGHT_ICON_THEME="Yaru-purple"
-DARK_ICON_THEME="Yaru-purple-dark"
+DARK_GTK_THEME="PiXnoir"
+DARK_ICON_THEME="PiXflat"
 
 
 # Get the current timezone offset

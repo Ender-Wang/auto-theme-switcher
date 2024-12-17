@@ -4,8 +4,11 @@
 LATITUDE="48.317009"
 LONGITUDE="11.662260"
 
-# Path to the theme-switcher script:
+# Path to the theme-switcher script and log, scheduler script and log:
 THEME_SWITCHER_SCRIPT="/home/enderwang/Documents/auto-theme-switcher/theme-switcher.sh"
+THEME_SWITCHER_LOG="/home/enderwang/Documents/auto-theme-switcher/theme-switcher.log"
+SCHEDULER_SCRIPT="/home/enderwang/Documents/auto-theme-switcher/scheduler.sh"
+SCHEDULER_LOG="/home/enderwang/Documents/auto-theme-switcher/scheduler.log"
 
 # Check if `hdate` is installed
 echo -n "Checking dependencies... "
@@ -36,8 +39,31 @@ SUNRISE_MIN=$(echo "$SUNRISE_TODAY" | cut -d: -f2)
 SUNSET_HOUR=$(echo "$SUNSET_TODAY" | cut -d: -f1)
 SUNSET_MIN=$(echo "$SUNSET_TODAY" | cut -d: -f2)
 
+
+# Fetch DISPLAY and DBUS_SESSION_BUS_ADDRESS
+# If DISPLAY is empty, set it to :0
+if [[ -z "$DISPLAY_VALUE" ]]; then
+    DISPLAY_VALUE=":0"
+fi
+DBUS_SESSION_BUS_ADDRESS_VALUE=$(echo $DBUS_SESSION_BUS_ADDRESS)
+
 # Backup existing crontab
 crontab -l > ~/backup_crontab_$(date +%Y%m%d_%H%M%S).bak
+
+# Add the scheduler to run every day at 3 AM if it doesn't already exist
+CRON_ENTRY="0 3 * * * DISPLAY=$DISPLAY_VALUE DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS_VALUE /bin/bash $SCHEDULER_SCRIPT >> $SCHEDULER_LOG 2>&1"
+if ! crontab -l | grep -q "$SCHEDULER_SCRIPT"; then
+    echo "Scheduler job doesn't exist. Adding it to crontab."
+    (
+        # Keep existing cron jobs (except the scheduler script)
+        crontab -l | grep -v "$SCHEDULER_SCRIPT" || true
+
+        # Add new scheduler job
+        echo "$CRON_ENTRY"
+    ) | crontab -
+else
+    echo "Scheduler script already exists in crontab."
+fi
 
 # Create new crontab entry for sunrise and sunset
 (
@@ -45,10 +71,10 @@ crontab -l > ~/backup_crontab_$(date +%Y%m%d_%H%M%S).bak
     crontab -l | grep -v "$THEME_SWITCHER_SCRIPT" || true
 
     # Add new sunrise job
-    echo "$SUNRISE_MIN $SUNRISE_HOUR * * * /bin/bash $THEME_SWITCHER_SCRIPT"
+    echo "$SUNRISE_MIN $SUNRISE_HOUR * * * DISPLAY=$DISPLAY_VALUE DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS_VALUE /bin/bash $THEME_SWITCHER_SCRIPT  >> $THEME_SWITCHER_LOG 2>&1"
 
     # Add new sunset job
-    echo "$SUNSET_MIN $SUNSET_HOUR * * * /bin/bash $THEME_SWITCHER_SCRIPT"
+    echo "$SUNSET_MIN $SUNSET_HOUR * * * DISPLAY=$DISPLAY_VALUE DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS_VALUE /bin/bash $THEME_SWITCHER_SCRIPT  >> $THEME_SWITCHER_LOG 2>&1"
 ) | crontab -
 
 echo "Crontab updated with new sunrise and sunset jobs."
